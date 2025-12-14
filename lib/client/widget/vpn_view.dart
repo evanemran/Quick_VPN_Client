@@ -7,6 +7,8 @@ import 'package:openvpn_client/client/widget/power_button.dart';
 import 'package:openvpn_client/commons/app_colors.dart';
 
 class VpnView extends GetView<VpnController> {
+  const VpnView({super.key});
+
 
   Widget _buildFullServerList(BuildContext context) {
     return Column(
