@@ -122,6 +122,56 @@ class VpnView extends GetView<VpnController> {
                       ),
                     ],
                   ),
+                  SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: EdgeInsets.all(8),
+                          color: Colors.transparent,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Image.asset("assets/images/down_icon.png", height: 28, width: 28, color: Colors.white54,),
+                              SizedBox(width: 8,),
+                              Column(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text("Ping", style: TextStyle(color: Colors.white54, fontSize: 16, fontWeight: FontWeight.normal),),
+                                  Obx(()=> Text("${controller.ping.value} ms", style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),)),
+                                ],
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                      Container(width: 1, height: 20, color: Colors.white24,),
+                      Expanded(
+                        child: Container(
+                          padding: EdgeInsets.all(8),
+                          color: Colors.transparent,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Image.asset("assets/images/up_icon.png", height: 28, width: 28, color: Colors.white54,),
+                              SizedBox(width: 8,),
+                              Column(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text("ISP", style: TextStyle(color: Colors.white54, fontSize: 16, fontWeight: FontWeight.normal),),
+                                  Obx(()=> Text(controller.isp.value, style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),)),
+                                ],
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   //Obx(()=> Text("Status: ${controller.status}", style: TextStyle(color: Colors.white),)),
                   SizedBox(height: 10),
                   /*ElevatedButton(

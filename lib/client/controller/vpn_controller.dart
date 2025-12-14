@@ -12,7 +12,10 @@ import 'package:openvpn_client/utils/date_utils.dart';
 import 'package:openvpn_client/utils/pref_utils.dart';
 import 'package:openvpn_client/utils/toast_utils.dart';
 import 'package:openvpn_flutter/openvpn_flutter.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
+import '../../models/vpn_location_info.dart';
 import '../widget/servers_sheet.dart';
 
 class VpnController extends GetxController {
@@ -33,6 +36,9 @@ class VpnController extends GetxController {
   var byteOut = "0.00".obs;
   var packetsIn = "0.00".obs;
   var packetsOut = "0.00".obs;
+  var isp = "N/A".obs;
+  var location = "N/A".obs;
+  var ping = 0.obs;
 
   var allServers = <String>['🏡 Home', '🏢 Office', '🖥️ Workstation'].obs;
   var selectedServer = "".obs;
@@ -53,26 +59,32 @@ class VpnController extends GetxController {
         if (vpnStage == VPNStage.connected) {
           isConnected.value = true;
           isLoading.value = false;
+          log.value += "Connected VPN\n";
           ToastUtils.showToast("Connected!!");
+          getVpnPing();
+          getVpnLocationInfo();
         }
         else if (vpnStage == VPNStage.disconnected) {
           isConnected.value = false;
           isLoading.value = false;
           duration.value = "Disconnected";
+          log.value += "Disconnected VPN\n";
           ToastUtils.showToast("Disconnected VPN!!");
         }
         else if (vpnStage == VPNStage.error) {
           isConnected.value = false;
           isLoading.value = false;
           duration.value = "Disconnected";
+          log.value += "Error ${stage.capitalizeFirst}\n";
           ToastUtils.showToast("Error Occurred!");
         }
         else if (vpnStage == VPNStage.vpn_generate_config) {
         isConnected.value = false;
         isLoading.value = true;
         duration.value = "Connecting...";
+        log.value += "Configuring Network\n";
         }
-        log.value += "Stage: $stage\n";
+        // log.value += "Stage: $stage\n";
       },
     );
   }
@@ -154,7 +166,7 @@ class VpnController extends GetxController {
     try {
       final connectedServer = extractRemoteAddress(config);
       server.value = connectedServer ?? "Unknown";
-      log.value = 'Loaded .ovpn for: $server\n';
+      log.value = 'Loaded config for: $server\n';
 
       await _vpn?.initialize(
         groupIdentifier: "",
@@ -190,6 +202,59 @@ class VpnController extends GetxController {
     connectedOn.value = "";
     byteIn.value = "0.00";
     byteOut.value = "0.00";
+  }
+
+  Future<void> getVpnPing() async {
+    try {
+      // Linux / Android / iOS compatible
+      final result = await Process.run(
+        'ping',
+        ['-c', '1', '1.1.1.1'], // Cloudflare DNS
+      );
+
+      if (result.exitCode == 0) {
+        final output = result.stdout.toString();
+
+        // Extract time=XX ms
+        final regex = RegExp(r'time=([\d.]+)\s*ms');
+        final match = regex.firstMatch(output);
+
+        if (match != null) {
+          ping.value = double.parse(match.group(1)!).round();
+        }
+      }
+    } catch (e) {
+      print("Ping error: $e");
+    }
+  }
+
+  Future<VpnLocationInfo?> getVpnLocationInfo() async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://ip-api.com/json'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        if (data != null) {
+          location.value = ("Location: ${data.city}, ${data.country}");
+          isp.value = ("ISP: ${data.isp}");
+        }
+
+        return VpnLocationInfo(
+          ip: data['query'] ?? '',
+          country: data['country'] ?? '',
+          city: data['city'] ?? '',
+          isp: data['isp'] ?? '',
+          org: data['org'] ?? '',
+          asn: data['as'] ?? '',
+        );
+      }
+    } catch (e) {
+      print('VPN location error: $e');
+    }
+    return null;
   }
 
 }
