@@ -38,22 +38,22 @@ class SpeedTestWidget extends GetView<SpeedTestController> {
 
                 ],
               ),
-              if(controller.ipInfo.value != null) ... {
-                Obx(() => Column(
-                  children: [
-                    Text(controller.ipInfo.value!.ip ?? "", style: TextStyle(color: AppColors.white, fontSize: 14),),
-                    SizedBox(height: 8,),
-                    Text(controller.ipInfo.value!.region ?? "", style: TextStyle(color: AppColors.white, fontSize: 14),),
-                    SizedBox(height: 8,),
-                    Text("${controller.ipInfo.value!.flag!.emoji} ${controller.ipInfo.value!.country}, ${controller.ipInfo.value!.continent}", style: TextStyle(color: AppColors.white, fontSize: 14),),
-                    SizedBox(height: 8,),
-                    Text("${controller.ipInfo.value!.connection!.isp}", style: TextStyle(color: AppColors.white, fontSize: 14),)
-                  ],
-                ))
-              },
+              Obx(() => controller.ipInfo.value != null ? Column(
+                children: [
+                  Text(controller.ipInfo.value!.ip ?? "", style: TextStyle(color: AppColors.white, fontSize: 14),),
+                  SizedBox(height: 8,),
+                  Text(controller.ipInfo.value!.region ?? "", style: TextStyle(color: AppColors.white, fontSize: 14),),
+                  SizedBox(height: 8,),
+                  Text("${controller.ipInfo.value!.flag!.emoji} ${controller.ipInfo.value!.country}, ${controller.ipInfo.value!.continent}", style: TextStyle(color: AppColors.white, fontSize: 14),),
+                  SizedBox(height: 8,),
+                  Text("${controller.ipInfo.value!.connection!.isp}", style: TextStyle(color: AppColors.white, fontSize: 14),),
+                  SizedBox(height: 8,),
+                  Text("${controller.ipInfo.value!.connection!.domain}", style: TextStyle(color: AppColors.white, fontSize: 14),)
+                ],
+              ) : SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: AppColors.accentColor,),))
             ],
           ),
-          Positioned(bottom: 24, left: 24, right: 24, child: Obx(() => ElevatedButton(
+          Positioned(bottom: 10, left: 16, right: 16, child: Obx(() => ElevatedButton(
             onPressed: controller.isTesting.value
                 ? controller.stopSpeedTest
                 : controller.startSpeedTest,

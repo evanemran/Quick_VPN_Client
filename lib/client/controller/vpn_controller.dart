@@ -16,6 +16,7 @@ import 'package:openvpn_client/utils/toast_utils.dart';
 import 'package:openvpn_flutter/openvpn_flutter.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../models/ip_info.dart';
 import '../../models/vpn_location_info.dart';
@@ -148,6 +149,9 @@ class VpnController extends GetxController {
   }
 
   void initVpnProfile() async {
+    if (Platform.isAndroid) {
+      await Permission.notification.request();
+    }
     final content = await PrefUtils().loadOpenVpnContent();
     if (content != null) {
       openVpnContent.value = content;
@@ -189,7 +193,7 @@ class VpnController extends GetxController {
         providerBundleIdentifier: "",
         localizedDescription: "Flutter VPN",
       );
-      _vpn?.connect(config, "vpn_profile", username: "", password: "");
+      _vpn?.connect(config, "Home Network", username: "", password: "");
     }
     catch (e) {
       duration.value = "00:00:00";

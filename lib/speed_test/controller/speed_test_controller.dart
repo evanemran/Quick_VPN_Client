@@ -16,25 +16,19 @@ class SpeedTestController extends GetxController {
   int _bytesReceived = 0;
   late Stopwatch _stopwatch;
 
-  double lowerValue = 20.0;
-  double upperValue = 40.0;
-  int start = 0;
-  int end = 60;
-
-  int counter = 0;
-
   Duration animationDuration = Duration(milliseconds: 100);
 
-  final ThemeData theme = ThemeData(
-
-  );
+  @override
+  void onInit() {
+    super.onInit();
+    getVpnLocationInfo();
+  }
 
   /// Start speed test
   Future<void> startSpeedTest() async {
     if (isTesting.value) return;
 
     isTesting.value = true;
-    getVpnLocationInfo();
     downloadSpeedMbps.value = 0;
     _bytesReceived = 0;
     _stopwatch = Stopwatch()..start();
@@ -58,7 +52,7 @@ class SpeedTestController extends GetxController {
 
           if (elapsedSeconds > 0) {
             final mbps =
-                (_bytesReceived * 8) / elapsedSeconds / 100000; //add a extra '0'
+                (_bytesReceived * 8) / elapsedSeconds / 1000000;
             downloadSpeedMbps.value = mbps;
           }
         },

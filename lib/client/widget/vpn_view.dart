@@ -122,7 +122,7 @@ class VpnView extends GetView<VpnController> {
                   Obx(() => controller.isConnected.value ? FlipTime(controller.duration.value) : Text(controller.state.value, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30),)),
                   //Obx(()=> Text(controller.duration.value, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30),)),
                   SizedBox(height: 10),
-                  Obx(()=>Text("Server: ${controller.server ?? 'Not selected'}", style: TextStyle(color: Colors.white),)),
+                  Obx(()=>Text("IP: ${controller.server ?? 'Not selected'}", style: TextStyle(color: Colors.white),)),
                   SizedBox(height: 10),
                   Obx(()=>Text("Connected on: ${controller.connectedOn ?? 'Not selected'}", style: TextStyle(color: Colors.white),)),
                   SizedBox(height: 20),
