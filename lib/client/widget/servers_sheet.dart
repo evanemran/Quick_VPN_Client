@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:openvpn_client/commons/app_colors.dart';
+
+import '../../themes/app_colors.dart';
 
 class ServerBottomSheet extends StatefulWidget {
   final List<String> servers;

@@ -6,7 +6,7 @@ import 'package:get/get_state_manager/src/simple/get_view.dart';
 import 'package:openvpn_client/add_profile/controller/add_profile_controller.dart';
 import 'package:openvpn_client/add_profile/controller/profile_tab_controller.dart';
 
-import '../../commons/app_colors.dart';
+import '../../themes/app_colors.dart';
 import 'file_profile_form.dart';
 import 'manual_profile_form.dart';
 

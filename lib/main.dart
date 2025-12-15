@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:openvpn_client/commons/app_colors.dart';
+import 'package:openvpn_client/themes/app_colors.dart';
 import 'package:openvpn_flutter/openvpn_flutter.dart';
 import 'package:toastification/toastification.dart';
 import 'commons/app_routes.dart';
