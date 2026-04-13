@@ -242,6 +242,56 @@ class VpnView extends GetView<VpnController> {
                 child: Text("Disconnect", style: TextStyle(color: Colors.white),),
               ),*/
                   /*PacketsGraphWidget(),*/
+                  Container(
+                    width: double.maxFinite,
+                    margin: EdgeInsets.symmetric(horizontal: 8),
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.black26,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Obx(() {
+                      final isConnected = controller.isConnected.value;
+                      final down = isConnected ? controller.downloadSpeed.value : "0 kbps";
+                      final up = isConnected ? controller.uploadSpeed.value : "0 kbps";
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Icon(Icons.download_rounded, color: Colors.greenAccent, size: 20),
+                                SizedBox(width: 8),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text("Download Speed", style: TextStyle(color: Colors.white54, fontSize: 12)),
+                                    Text(down, style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(width: 1, height: 36, color: Colors.white24),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Icon(Icons.upload_rounded, color: Colors.lightBlueAccent, size: 20),
+                                SizedBox(width: 8),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text("Upload Speed", style: TextStyle(color: Colors.white54, fontSize: 12)),
+                                    Text(up, style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      );
+                    }),
+                  ),
                   SizedBox(height: 20),
                   SizedBox(
                     height: 200,

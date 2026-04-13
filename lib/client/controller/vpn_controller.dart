@@ -40,6 +40,12 @@ class VpnController extends GetxController {
   var packetsIn = "0.00".obs;
   var packetsOut = "0.00".obs;
   var ping = 0.obs;
+  var downloadSpeed = "0 kbps".obs;
+  var uploadSpeed = "0 kbps".obs;
+
+  int? _lastByteInTotal;
+  int? _lastByteOutTotal;
+  DateTime? _lastSpeedSampleAt;
 
 
   // Demo List
@@ -235,10 +241,13 @@ class VpnController extends GetxController {
     } else {
       _syncDurationFromConnectedAt();
     }
-    byteIn.value = (double.parse(data.byteIn!)/(1024*1024)).toStringAsFixed(2);
-    byteOut.value = (double.parse(data.byteOut!)/(1024*1024)).toStringAsFixed(2);
+    final totalByteIn = int.tryParse(data.byteIn ?? "0") ?? 0;
+    final totalByteOut = int.tryParse(data.byteOut ?? "0") ?? 0;
+    byteIn.value = (totalByteIn/(1024*1024)).toStringAsFixed(2);
+    byteOut.value = (totalByteOut/(1024*1024)).toStringAsFixed(2);
     packetsIn.value = data.packetsIn!;
     packetsOut.value = data.packetsOut!;
+    _updateRealtimeSpeeds(totalByteIn: totalByteIn, totalByteOut: totalByteOut);
   }
 
   /*Stream<Map<String,int>> packetsStream() async* {
@@ -259,6 +268,11 @@ class VpnController extends GetxController {
     byteOut.value = "0.00";
     ping.value = 0;
     ipInfo.value = null;
+    downloadSpeed.value = "0 kbps";
+    uploadSpeed.value = "0 kbps";
+    _lastByteInTotal = null;
+    _lastByteOutTotal = null;
+    _lastSpeedSampleAt = null;
   }
 
   Future<void> getVpnPing() async {
@@ -372,6 +386,45 @@ class VpnController extends GetxController {
     final minutes = ((totalSeconds % 3600) ~/ 60).toString().padLeft(2, '0');
     final seconds = (totalSeconds % 60).toString().padLeft(2, '0');
     duration.value = "$hours:$minutes:$seconds";
+  }
+
+  void _updateRealtimeSpeeds({
+    required int totalByteIn,
+    required int totalByteOut,
+  }) {
+    final now = DateTime.now();
+    if (_lastByteInTotal == null || _lastByteOutTotal == null || _lastSpeedSampleAt == null) {
+      _lastByteInTotal = totalByteIn;
+      _lastByteOutTotal = totalByteOut;
+      _lastSpeedSampleAt = now;
+      return;
+    }
+
+    final elapsedMs = now.difference(_lastSpeedSampleAt!).inMilliseconds;
+    if (elapsedMs <= 0) {
+      return;
+    }
+
+    final deltaIn = (totalByteIn - _lastByteInTotal!).clamp(0, 1 << 31);
+    final deltaOut = (totalByteOut - _lastByteOutTotal!).clamp(0, 1 << 31);
+    final elapsedSeconds = elapsedMs / 1000.0;
+
+    final inBitsPerSecond = (deltaIn * 8) / elapsedSeconds;
+    final outBitsPerSecond = (deltaOut * 8) / elapsedSeconds;
+
+    downloadSpeed.value = _formatBitsPerSecond(inBitsPerSecond);
+    uploadSpeed.value = _formatBitsPerSecond(outBitsPerSecond);
+
+    _lastByteInTotal = totalByteIn;
+    _lastByteOutTotal = totalByteOut;
+    _lastSpeedSampleAt = now;
+  }
+
+  String _formatBitsPerSecond(double bps) {
+    if (bps >= 1000 * 1000) {
+      return "${(bps / (1000 * 1000)).toStringAsFixed(2)} mbps";
+    }
+    return "${(bps / 1000).toStringAsFixed(2)} kbps";
   }
 
   @override

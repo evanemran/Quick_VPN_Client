@@ -52,7 +52,9 @@ class PrefUtils {
 
   Future<void> saveVpnStats(VpnStatus stat) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('vpn_stats', jsonEncode(stat.toJson())); // saves as string like 'connected'
+    final rawMap = stat.toJson();
+    final encodableMap = _toJsonEncodable(rawMap);
+    await prefs.setString('vpn_stats', jsonEncode(encodableMap));
   }
 
   Future<VPNStage> loadVpnStage() async {
@@ -72,6 +74,21 @@ class PrefUtils {
     if (jsonStat == null) return null;
     jsonDecode(jsonStat);
     return VpnStatus(duration: "");
+  }
+
+  dynamic _toJsonEncodable(dynamic value) {
+    if (value is DateTime) {
+      return value.toIso8601String();
+    }
+    if (value is Map) {
+      return value.map(
+        (key, val) => MapEntry(key.toString(), _toJsonEncodable(val)),
+      );
+    }
+    if (value is Iterable) {
+      return value.map(_toJsonEncodable).toList();
+    }
+    return value;
   }
 
   Future<void> clearVpnStage() async {
