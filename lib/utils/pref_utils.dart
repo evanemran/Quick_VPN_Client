@@ -70,13 +70,31 @@ class PrefUtils {
     final prefs = await SharedPreferences.getInstance();
     final jsonStat = prefs.getString('vpn_stats');
     if (jsonStat == null) return null;
-
-    final jsonMap = jsonDecode(jsonStat);
+    jsonDecode(jsonStat);
     return VpnStatus(duration: "");
   }
 
   Future<void> clearVpnStage() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('vpn_stage');
+  }
+
+  Future<void> saveConnectedOn(DateTime connectedOn) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('vpn_connected_on_ms', connectedOn.millisecondsSinceEpoch);
+  }
+
+  Future<DateTime?> loadConnectedOn() async {
+    final prefs = await SharedPreferences.getInstance();
+    final connectedOnMs = prefs.getInt('vpn_connected_on_ms');
+    if (connectedOnMs == null) {
+      return null;
+    }
+    return DateTime.fromMillisecondsSinceEpoch(connectedOnMs);
+  }
+
+  Future<void> clearConnectedOn() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('vpn_connected_on_ms');
   }
 }

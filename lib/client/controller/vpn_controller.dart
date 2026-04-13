@@ -1,13 +1,8 @@
 import 'dart:io';
-import 'dart:math';
+import 'dart:async';
 
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_rx/src/rx_types/rx_types.dart';
-import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import 'package:openvpn_client/commons/app_routes.dart';
 import 'package:openvpn_client/models/server_info.dart';
 import 'package:openvpn_client/utils/date_utils.dart';
@@ -19,12 +14,14 @@ import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../models/ip_info.dart';
-import '../../models/vpn_location_info.dart';
 import '../widget/servers_sheet.dart';
 
 class VpnController extends GetxController {
 
   OpenVPN? _vpn;
+  DateTime? _connectedAt;
+  Timer? _durationTimer;
+  bool _isRestoringState = false;
   var log = "Logs:\n".obs;
   var status = Rxn<VpnStatus>();
   var ipInfo = Rxn<IpInfo>();
@@ -60,17 +57,24 @@ class VpnController extends GetxController {
 
     _vpn = OpenVPN(
       onVpnStatusChanged: (data) {
-        if(isConnected.value) {
+        if (data != null) {
           status.value = data;
-          parseStatus(data!);
+          parseStatus(data);
+          PrefUtils().saveVpnStats(data);
         }
       },
       onVpnStageChanged: (vpnStage, stage) {
         if (vpnStage == VPNStage.connected) {
           isConnected.value = true;
           isLoading.value = false;
-          log.value += "Connected VPN\n";
-          ToastUtils.showToast("Connected!!");
+          state.value = "Connected";
+          PrefUtils().saveVpnStage(vpnStage);
+          _ensureConnectedAt();
+          _startDurationTicker();
+          if(!_isRestoringState) {
+            log.value += "Connected VPN\n";
+            ToastUtils.showToast("Connected!!");
+          }
           getVpnPing();
           getVpnLocationInfo();
         }
@@ -79,16 +83,26 @@ class VpnController extends GetxController {
           isLoading.value = false;
           duration.value = "00:00:00";
           state.value = "Disconnected";
-          log.value += "Disconnected VPN\n";
-          ToastUtils.showToast("Disconnected VPN!!");
+          PrefUtils().clearVpnStage();
+          PrefUtils().clearConnectedOn();
+          _stopDurationTicker();
+          if(!_isRestoringState) {
+            log.value += "Disconnected VPN\n";
+            ToastUtils.showToast("Disconnected VPN!!");
+          }
         }
         else if (vpnStage == VPNStage.error) {
           isConnected.value = false;
           isLoading.value = false;
           duration.value = "00:00:00";
           state.value = "Disconnected";
-          log.value += "Error ${stage.capitalizeFirst}\n";
-          ToastUtils.showToast("Error Occurred!");
+          PrefUtils().clearVpnStage();
+          PrefUtils().clearConnectedOn();
+          _stopDurationTicker();
+          if(!_isRestoringState) {
+            log.value += "Error ${stage.capitalizeFirst}\n";
+            ToastUtils.showToast("Error Occurred!");
+          }
         }
         else if (vpnStage == VPNStage.vpn_generate_config) {
         isConnected.value = false;
@@ -100,6 +114,7 @@ class VpnController extends GetxController {
         // log.value += "Stage: $stage\n";
       },
     );
+    _restoreVpnState();
   }
 
   /*Future<void> restoreVpnState() async {
@@ -206,12 +221,20 @@ class VpnController extends GetxController {
   void disconnect() {
     _vpn?.disconnect();
     log.value += 'Disconnected.\n';
+    PrefUtils().clearVpnStage();
+    PrefUtils().clearConnectedOn();
+    _stopDurationTicker();
     resetValues();
   }
 
   void parseStatus(VpnStatus data) {
-    connectedOn.value = AppDateUtils.formatVpnTime(data.connectedOn??DateTime.now());
-    duration.value = data.duration!;
+    final connectedOnDate = data.connectedOn ?? _connectedAt ?? DateTime.now();
+    _setConnectedAt(connectedOnDate, persist: true);
+    if ((data.duration ?? '').isNotEmpty) {
+      duration.value = data.duration!;
+    } else {
+      _syncDurationFromConnectedAt();
+    }
     byteIn.value = (double.parse(data.byteIn!)/(1024*1024)).toStringAsFixed(2);
     byteOut.value = (double.parse(data.byteOut!)/(1024*1024)).toStringAsFixed(2);
     packetsIn.value = data.packetsIn!;
@@ -227,6 +250,8 @@ class VpnController extends GetxController {
 
 
   void resetValues() {
+    _stopDurationTicker();
+    _connectedAt = null;
     duration.value = "00:00:00";
     state.value = "Disconnected";
     connectedOn.value = "";
@@ -256,7 +281,7 @@ class VpnController extends GetxController {
         }
       }
     } catch (e) {
-      print("Ping error: $e");
+      debugPrint("Ping error: $e");
     }
   }
 
@@ -278,6 +303,81 @@ class VpnController extends GetxController {
       debugPrint('VPN location error: $e');
     }
     return null;
+  }
+
+  Future<void> _restoreVpnState() async {
+    _isRestoringState = true;
+    try {
+      final currentStage = await PrefUtils().loadVpnStage();
+      if (currentStage == VPNStage.connected) {
+        final savedConnectedOn = await PrefUtils().loadConnectedOn();
+        _setConnectedAt(savedConnectedOn ?? DateTime.now(), persist: savedConnectedOn == null);
+        isConnected.value = true;
+        isLoading.value = false;
+        state.value = "Connected";
+        _syncDurationFromConnectedAt();
+        _startDurationTicker();
+        log.value += "Restored previous VPN state\n";
+        await getVpnPing();
+        await getVpnLocationInfo();
+      } else {
+        isConnected.value = false;
+        isLoading.value = false;
+        state.value = "Disconnected";
+        _stopDurationTicker();
+      }
+    } catch (_) {
+      // Ignore restore errors and let callbacks drive state.
+    } finally {
+      _isRestoringState = false;
+    }
+  }
+
+  void _setConnectedAt(DateTime dateTime, {required bool persist}) {
+    _connectedAt = dateTime;
+    connectedOn.value = AppDateUtils.formatVpnTime(dateTime);
+    if (persist) {
+      PrefUtils().saveConnectedOn(dateTime);
+    }
+  }
+
+  void _ensureConnectedAt() {
+    if (_connectedAt != null) {
+      return;
+    }
+    _setConnectedAt(DateTime.now(), persist: true);
+  }
+
+  void _startDurationTicker() {
+    _durationTimer?.cancel();
+    _syncDurationFromConnectedAt();
+    _durationTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _syncDurationFromConnectedAt();
+    });
+  }
+
+  void _stopDurationTicker() {
+    _durationTimer?.cancel();
+    _durationTimer = null;
+  }
+
+  void _syncDurationFromConnectedAt() {
+    if (_connectedAt == null) {
+      duration.value = "00:00:00";
+      return;
+    }
+    final elapsed = DateTime.now().difference(_connectedAt!);
+    final totalSeconds = elapsed.inSeconds;
+    final hours = (totalSeconds ~/ 3600).toString().padLeft(2, '0');
+    final minutes = ((totalSeconds % 3600) ~/ 60).toString().padLeft(2, '0');
+    final seconds = (totalSeconds % 60).toString().padLeft(2, '0');
+    duration.value = "$hours:$minutes:$seconds";
+  }
+
+  @override
+  void onClose() {
+    _stopDurationTicker();
+    super.onClose();
   }
 
 
