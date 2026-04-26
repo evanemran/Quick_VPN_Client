@@ -118,7 +118,7 @@ class PowerButton extends StatelessWidget {
               color: colors.success,
               delay: const Duration(milliseconds: 500),
               repeat: true,
-              duration: const Duration(milliseconds: 3000),
+              duration: const Duration(milliseconds: 2000),
               child: core,
             )
           : Stack(

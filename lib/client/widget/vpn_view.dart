@@ -45,12 +45,13 @@ class VpnView extends GetView<VpnController> {
                               child: Column(
                                 children: [
                                   _TopBar(controller: controller),
-                                  const SizedBox(height: 18),
+                                  const SizedBox(height: 8),
                                   Padding(
                                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                                     child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        Expanded(
+                                        /*Expanded(
                                           child: Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
@@ -87,7 +88,7 @@ class VpnView extends GetView<VpnController> {
                                               ],
                                             ],
                                           ),
-                                        ),
+                                        ),*/
                                         _StatusDot(
                                           label: controller.state.value,
                                           active: isConnected,
@@ -96,7 +97,7 @@ class VpnView extends GetView<VpnController> {
                                       ],
                                     ),
                                   ),
-                                  const SizedBox(height: 28),
+                                  const SizedBox(height: 12),
                                   /*Text(
                                     isConnected
                                         ? 'Session'
@@ -121,13 +122,13 @@ class VpnView extends GetView<VpnController> {
                                             letterSpacing: 1,
                                           ),
                                         ),
-                                  const SizedBox(height: 22),
+                                  const SizedBox(height: 8),
                                   PowerButton(
                                     isConnected: isConnected,
                                     isLoading: isLoading,
                                     onPressed: controller.toggleConnection,
                                   ),
-                                  const SizedBox(height: 18),
+                                  const SizedBox(height: 16),
                                   Text(
                                     isConnected
                                         ? 'Connection is successful'
@@ -140,7 +141,7 @@ class VpnView extends GetView<VpnController> {
                                       fontSize: 15,
                                     ),
                                   ),
-                                  const SizedBox(height: 18),
+                                  const SizedBox(height: 8),
                                   Row(
                                     children: [
                                       Expanded(
@@ -164,7 +165,7 @@ class VpnView extends GetView<VpnController> {
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 14),
+                                  const SizedBox(height: 8),
                                   Row(
                                     children: [
                                       Expanded(
@@ -185,7 +186,7 @@ class VpnView extends GetView<VpnController> {
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 18),
+                                  const SizedBox(height: 8),
                                   _LocationStrip(
                                     controller: controller,
                                     serverName: serverName,
@@ -284,7 +285,7 @@ class _TopBar extends StatelessWidget {
     final colors = context.appColors;
     final themeController = Get.find<ThemeController>();
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
       child: Row(
         children: [
           Expanded(
@@ -509,7 +510,7 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return _GlassPanel(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
       radius: 24,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -535,7 +536,7 @@ class _StatCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 8),
           Text(
             value,
             style: TextStyle(
@@ -573,7 +574,7 @@ class _MiniInfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return _GlassPanel(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
       radius: 24,
       child: Row(
         children: [
