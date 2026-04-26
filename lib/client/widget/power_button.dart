@@ -114,7 +114,7 @@ class PowerButton extends StatelessWidget {
           ? RippleAnimation(
               minRadius: buttonSize * 0.58,
               maxRadius: buttonSize * 0.90,
-              ripplesCount: 3,
+              ripplesCount: 5,
               color: colors.success,
               delay: const Duration(milliseconds: 500),
               repeat: true,

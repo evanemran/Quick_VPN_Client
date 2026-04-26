@@ -838,26 +838,27 @@ class _ServerTile extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(24),
-      child: InkWell(
+      child: GestureDetector(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
-        child: Ink(
+        child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             gradient: selected ? colors.heroGradient : null,
             color: selected ? null : colors.panelFill,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: selected ? Colors.white.withOpacity(0.20) : colors.stroke,
+              color: selected
+                  ? Colors.white.withOpacity(0.20)
+                  : colors.stroke,
             ),
             boxShadow: selected
                 ? [
-                    BoxShadow(
-                      color: colors.accent.withOpacity(0.22),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ]
+              BoxShadow(
+                color: colors.accent.withOpacity(0.22),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ]
                 : null,
           ),
           child: Row(
@@ -917,7 +918,7 @@ class _ServerTile extends StatelessWidget {
             ],
           ),
         ),
-      ),
+      )
     );
   }
 }
