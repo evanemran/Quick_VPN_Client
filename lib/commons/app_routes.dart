@@ -3,7 +3,6 @@ import 'package:openvpn_client/add_profile/binding/add_profile_binding.dart';
 import 'package:openvpn_client/add_profile/widget/add_profile_view.dart';
 import 'package:openvpn_client/client/binding/vpn_binding.dart';
 import 'package:openvpn_client/client/widget/vpn_view.dart';
-import 'package:openvpn_client/main.dart';
 import 'package:openvpn_client/speed_test/binding/speed_test_binding.dart';
 import 'package:openvpn_client/speed_test/widget/speed_test_widget.dart';
 import 'package:openvpn_client/splash/binding/splash_binding.dart';

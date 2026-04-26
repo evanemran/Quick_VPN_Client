@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../themes/app_colors.dart';
@@ -8,47 +7,46 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Drawer(
-      backgroundColor: AppColors.primaryColor,
+      backgroundColor: colors.surface,
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            padding: EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: AppColors.primaryColor,
+              gradient: colors.heroGradient,
             ),
-            child: Text(
-              "Quick VPN",
-              style: TextStyle(color: Colors.white, fontSize: 24),
+            child: Align(
+              alignment: Alignment.bottomLeft,
+              child: Text(
+                "Quick VPN",
+                style: TextStyle(
+                  color: colors.isDark ? Colors.white : colors.textPrimary,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.home),
-            title: const Text("Home"),
-            onTap: () {
-              Navigator.pop(context); // close drawer
-              // Navigate to Home
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text("Settings"),
-            onTap: () {
-              Navigator.pop(context); // close drawer
-              // Navigate to Settings
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text("Logout"),
-            onTap: () {
-              Navigator.pop(context); // close drawer
-              // Perform logout
-            },
-          ),
+          _item(context, Icons.home_rounded, "Home"),
+          _item(context, Icons.settings_rounded, "Settings"),
+          _item(context, Icons.logout_rounded, "Logout"),
         ],
       ),
+    );
+  }
+
+  Widget _item(BuildContext context, IconData icon, String label) {
+    final colors = context.appColors;
+    return ListTile(
+      leading: Icon(icon, color: colors.textPrimary),
+      title: Text(
+        label,
+        style: TextStyle(color: colors.textPrimary),
+      ),
+      onTap: () => Navigator.pop(context),
     );
   }
 }

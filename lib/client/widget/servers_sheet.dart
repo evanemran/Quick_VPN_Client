@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../../themes/app_colors.dart';
 
 class ServerBottomSheet extends StatefulWidget {
-  final List<String> servers;
-
   const ServerBottomSheet({super.key, required this.servers});
+
+  final List<String> servers;
 
   @override
   State<ServerBottomSheet> createState() => _ServerBottomSheetState();
@@ -13,7 +13,6 @@ class ServerBottomSheet extends StatefulWidget {
 
 class _ServerBottomSheetState extends State<ServerBottomSheet> {
   late String selectedServer;
-  bool expanded = false;
 
   @override
   void initState() {
@@ -23,51 +22,106 @@ class _ServerBottomSheetState extends State<ServerBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      padding: const EdgeInsets.all(16),
+    final colors = context.appColors;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
       decoration: BoxDecoration(
-        color: AppColors.primaryColor,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        color: colors.locationSheet,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        border: Border.all(color: colors.stroke),
       ),
-      height: expanded ? 300 : 80,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GestureDetector(
-            onTap: () => setState(() => expanded = !expanded),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '$selectedServer',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-                Icon(expanded ? Icons.expand_more : Icons.expand_less, color: Colors.white,),
-              ],
+          Center(
+            child: Container(
+              width: 48,
+              height: 5,
+              decoration: BoxDecoration(
+                color: colors.textMuted.withOpacity(0.25),
+                borderRadius: BorderRadius.circular(999),
+              ),
             ),
           ),
-          const SizedBox(height: 16),
-          if (expanded)
-            Expanded(
-              child: ListView.builder(
-                itemCount: widget.servers.length,
-                itemBuilder: (context, index) {
-                  final server = widget.servers[index];
-                  return ListTile(
-                    title: Text('$server', style: TextStyle(color: Colors.white),),
+          const SizedBox(height: 20),
+          Text(
+            'Choose server',
+            style: TextStyle(
+              color: colors.textPrimary,
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 18),
+          Expanded(
+            child: ListView.separated(
+              itemCount: widget.servers.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final server = widget.servers[index];
+                final selected = server == selectedServer;
+                return Material(
+                  color: Colors.transparent,
+                  child: InkWell(
                     onTap: () {
                       setState(() {
                         selectedServer = server;
-                        expanded = false;
                       });
                     },
-                    selected: server == selectedServer,
-                    selectedTileColor: Colors.grey.shade200,
-                  );
-                },
-              ),
+                    borderRadius: BorderRadius.circular(22),
+                    child: Ink(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 14,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: selected ? colors.heroGradient : null,
+                        color: selected ? null : colors.panelFill,
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(
+                          color: selected
+                              ? Colors.white.withOpacity(0.24)
+                              : colors.stroke,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: selected
+                                ? Colors.white.withOpacity(0.14)
+                                : colors.softIconFill,
+                            child: Text(
+                              server.characters.first.toUpperCase(),
+                              style: TextStyle(
+                                color: selected ? Colors.white : colors.textPrimary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Text(
+                              server,
+                              style: TextStyle(
+                                color: selected ? Colors.white : colors.textPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          Icon(
+                            selected
+                                ? Icons.check_circle_rounded
+                                : Icons.chevron_right_rounded,
+                            color: selected ? Colors.white : colors.textMuted,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
+          ),
         ],
       ),
     );

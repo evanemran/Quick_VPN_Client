@@ -1,143 +1,189 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get_state_manager/src/simple/get_view.dart';
-import 'package:openvpn_client/add_profile/controller/manual_profile_controller.dart';
 
 import '../../themes/app_colors.dart';
 
-class ManualProfileForm extends GetView<ManualProfileController> {
+class ManualProfileForm extends StatefulWidget {
+  const ManualProfileForm({super.key});
 
-  bool _obscureText = true;
+  @override
+  State<ManualProfileForm> createState() => _ManualProfileFormState();
+}
+
+class _ManualProfileFormState extends State<ManualProfileForm> {
+  bool obscureText = true;
 
   String? selectedValue = "IKEv2/IPSec MSCHAPv2";
   String? selectedCertificate = 'Don\'t verify server';
   String? selectedServerCertificate = 'SvcAgentKey';
 
-  List<String> items = ['IKEv2/IPSec MSCHAPv2', 'IKEv2/IPSec PSK', 'IKEv2/IPSec RSA', 'IKEv2/IPSec EAP-TLS'];
-  List<String> certificates = ['Don\'t verify server', 'FMEKeyStore', 'FindMyMobile', 'SvcAgentKey'];
+  final List<String> items = [
+    'IKEv2/IPSec MSCHAPv2',
+    'IKEv2/IPSec PSK',
+    'IKEv2/IPSec RSA',
+    'IKEv2/IPSec EAP-TLS'
+  ];
+  final List<String> certificates = [
+    'Don\'t verify server',
+    'FMEKeyStore',
+    'FindMyMobile',
+    'SvcAgentKey'
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.primaryColor,
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Name", style: TextStyle(color: Colors.white54),),
-              TextField(
-                controller: TextEditingController(),
-                style: TextStyle(color: Colors.white, fontSize: 18),
-                decoration: InputDecoration(
-                  hintText: 'Enter profile name',
-                  hintStyle: TextStyle(color: Colors.white54, fontSize: 18),
-                ),
+    final colors = context.appColors;
+    return Container(
+      decoration: colors.glassDecoration(),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(18),
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Manual setup',
+              style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
               ),
-              SizedBox(height: 16,),
-          
-              Text("Type", style: TextStyle(color: Colors.white54),),
-              DropdownButtonFormField<String>(
-                value: selectedValue,
-                isExpanded: true,
-                items: items.map((item) {
-                  return DropdownMenuItem(
-                    value: item,
-                    child: Text(item, style: TextStyle(color: Colors.white, fontSize: 18),),
-                  );
-                }).toList(),
-                onChanged: (val) {
-                  selectedValue = val;
-                },
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Use this when you want to enter credentials and certificates yourself.',
+              style: TextStyle(
+                color: colors.textMuted,
+                fontSize: 13,
               ),
-              SizedBox(height: 16,),
-          
-              Text("Server address", style: TextStyle(color: Colors.white54),),
-              TextField(
-                controller: TextEditingController(),
-                style: TextStyle(color: Colors.white, fontSize: 18),
-                decoration: InputDecoration(
-                  hintText: 'Enter address',
-                  hintStyle: TextStyle(color: Colors.white54),
-                ),
-              ),
-              SizedBox(height: 16,),
-          
-              Text("IPSec Identifier", style: TextStyle(color: Colors.white54),),
-              TextField(
-                controller: TextEditingController(),
-                style: TextStyle(color: Colors.white, fontSize: 18),
-                decoration: InputDecoration(
-                  hintText: 'Not Used',
-                  hintStyle: TextStyle(color: Colors.white54),
-                ),
-              ),
-              SizedBox(height: 16,),
-
-              Text("IPSec CA Certificate", style: TextStyle(color: Colors.white54),),
-              DropdownButtonFormField<String>(
-                value: selectedCertificate,
-                isExpanded: true,
-                items: certificates.map((item) {
-                  return DropdownMenuItem(
-                    value: item,
-                    child: Text(item, style: TextStyle(color: Colors.white, fontSize: 18),),
-                  );
-                }).toList(),
-                onChanged: (val) {
-                  selectedValue = val;
-                },
-              ),
-              SizedBox(height: 16,),
-
-              Text("IPSec Server Certificate", style: TextStyle(color: Colors.white54),),
-              DropdownButtonFormField<String>(
-                value: selectedCertificate,
-                isExpanded: true,
-                items: certificates.map((item) {
-                  return DropdownMenuItem(
-                    value: item,
-                    child: Text(item, style: TextStyle(color: Colors.white, fontSize: 18),),
-                  );
-                }).toList(),
-                onChanged: (val) {
-                  selectedValue = val;
-                },
-              ),
-              SizedBox(height: 16,),
-          
-              Text("Username", style: TextStyle(color: Colors.white54),),
-              TextField(
-                controller: TextEditingController(),
-                style: TextStyle(color: Colors.white, fontSize: 18),
-                decoration: InputDecoration(
-                  hintText: 'Enter username',
-                  hintStyle: TextStyle(color: Colors.white54),
-                ),
-              ),
-              SizedBox(height: 16,),
-          
-              Text("Password", style: TextStyle(color: Colors.white54),),
-              TextField(
-                controller: TextEditingController(),
-                style: TextStyle(color: Colors.white, fontSize: 18),
-                decoration: InputDecoration(
-                  hintText: 'Enter password',
-                  hintStyle: TextStyle(color: Colors.white54),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscureText ? Icons.visibility_off : Icons.visibility,
+            ),
+            const SizedBox(height: 20),
+            _fieldLabel(context, "Name"),
+            TextField(
+              controller: TextEditingController(),
+              style: TextStyle(color: colors.textPrimary, fontSize: 16),
+              decoration: const InputDecoration(hintText: 'Enter profile name'),
+            ),
+            const SizedBox(height: 16),
+            _fieldLabel(context, "Type"),
+            DropdownButtonFormField<String>(
+              value: selectedValue,
+              dropdownColor: colors.surfaceStrong,
+              isExpanded: true,
+              items: items.map((item) {
+                return DropdownMenuItem(
+                  value: item,
+                  child: Text(
+                    item,
+                    style: TextStyle(
+                      color: colors.textPrimary,
+                      fontSize: 16,
                     ),
-                    onPressed: () {
-                      _obscureText = !_obscureText;
-                    },
                   ),
+                );
+              }).toList(),
+              onChanged: (val) => setState(() => selectedValue = val),
+            ),
+            const SizedBox(height: 16),
+            _fieldLabel(context, "Server address"),
+            TextField(
+              controller: TextEditingController(),
+              style: TextStyle(color: colors.textPrimary, fontSize: 16),
+              decoration: const InputDecoration(hintText: 'Enter address'),
+            ),
+            const SizedBox(height: 16),
+            _fieldLabel(context, "IPSec Identifier"),
+            TextField(
+              controller: TextEditingController(),
+              style: TextStyle(color: colors.textPrimary, fontSize: 16),
+              decoration: const InputDecoration(hintText: 'Not used'),
+            ),
+            const SizedBox(height: 16),
+            _fieldLabel(context, "IPSec CA Certificate"),
+            DropdownButtonFormField<String>(
+              value: selectedCertificate,
+              dropdownColor: colors.surfaceStrong,
+              isExpanded: true,
+              items: certificates.map((item) {
+                return DropdownMenuItem(
+                  value: item,
+                  child: Text(
+                    item,
+                    style: TextStyle(
+                      color: colors.textPrimary,
+                      fontSize: 16,
+                    ),
+                  ),
+                );
+              }).toList(),
+              onChanged: (val) => setState(() => selectedCertificate = val),
+            ),
+            const SizedBox(height: 16),
+            _fieldLabel(context, "IPSec Server Certificate"),
+            DropdownButtonFormField<String>(
+              value: selectedServerCertificate,
+              dropdownColor: colors.surfaceStrong,
+              isExpanded: true,
+              items: certificates.map((item) {
+                return DropdownMenuItem(
+                  value: item,
+                  child: Text(
+                    item,
+                    style: TextStyle(
+                      color: colors.textPrimary,
+                      fontSize: 16,
+                    ),
+                  ),
+                );
+              }).toList(),
+              onChanged: (val) =>
+                  setState(() => selectedServerCertificate = val),
+            ),
+            const SizedBox(height: 16),
+            _fieldLabel(context, "Username"),
+            TextField(
+              controller: TextEditingController(),
+              style: TextStyle(color: colors.textPrimary, fontSize: 16),
+              decoration: const InputDecoration(hintText: 'Enter username'),
+            ),
+            const SizedBox(height: 16),
+            _fieldLabel(context, "Password"),
+            TextField(
+              controller: TextEditingController(),
+              obscureText: obscureText,
+              style: TextStyle(color: colors.textPrimary, fontSize: 16),
+              decoration: InputDecoration(
+                hintText: 'Enter password',
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    obscureText
+                        ? Icons.visibility_off_rounded
+                        : Icons.visibility_rounded,
+                    color: colors.textMuted,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      obscureText = !obscureText;
+                    });
+                  },
                 ),
               ),
-              SizedBox(height: 16,),
-            ],
-          ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _fieldLabel(BuildContext context, String label) {
+    final colors = context.appColors;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: colors.textMuted,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );

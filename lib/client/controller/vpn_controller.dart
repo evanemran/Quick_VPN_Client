@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -8,6 +8,8 @@ import 'package:openvpn_client/models/server_info.dart';
 import 'package:openvpn_client/utils/date_utils.dart';
 import 'package:openvpn_client/utils/pref_utils.dart';
 import 'package:openvpn_client/utils/toast_utils.dart';
+import 'package:openvpn_client/vpn/openvpn_connection.dart';
+import 'package:openvpn_client/vpn/vpn_factory.dart';
 import 'package:openvpn_flutter/openvpn_flutter.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -18,7 +20,7 @@ import '../widget/servers_sheet.dart';
 
 class VpnController extends GetxController {
 
-  OpenVPN? _vpn;
+  OpenVpnConnection? _vpn;
   DateTime? _connectedAt;
   Timer? _durationTimer;
   bool _isRestoringState = false;
@@ -61,7 +63,7 @@ class VpnController extends GetxController {
     super.onInit();
     initVpnProfile();
 
-    _vpn = OpenVPN(
+    _vpn = createOpenVpnConnection(
       onVpnStatusChanged: (data) {
         if (data != null) {
           status.value = data;
@@ -142,13 +144,10 @@ class VpnController extends GetxController {
   }*/
 
   void toggleConnection() {
-    if(isConnected.value) {
-      disconnect();
-      isConnected.value = false;
-    }
-    else {
+    if (isConnected.value) {
+      unawaited(disconnect());
+    } else {
       connect(openVpnContent.value);
-      // isConnected.value = true; //moved to connect
     }
   }
 
@@ -214,7 +213,7 @@ class VpnController extends GetxController {
         providerBundleIdentifier: "",
         localizedDescription: "Flutter VPN",
       );
-      _vpn?.connect(config, "Home Network", username: "", password: "");
+      await _vpn?.connect(config, "Home Network", username: "", password: "");
     }
     catch (e) {
       duration.value = "00:00:00";
@@ -224,8 +223,8 @@ class VpnController extends GetxController {
     }
   }
 
-  void disconnect() {
-    _vpn?.disconnect();
+  Future<void> disconnect() async {
+    await _vpn?.disconnect();
     log.value += 'Disconnected.\n';
     PrefUtils().clearVpnStage();
     PrefUtils().clearConnectedOn();
@@ -277,22 +276,26 @@ class VpnController extends GetxController {
 
   Future<void> getVpnPing() async {
     try {
-      // Linux / Android / iOS compatible
-      final result = await Process.run(
-        'ping',
-        ['-c', '1', '1.1.1.1'], // Cloudflare DNS
-      );
+      final ProcessResult result;
+      if (Platform.isWindows) {
+        result = await Process.run('ping', ['-n', '1', '1.1.1.1']);
+      } else {
+        result = await Process.run('ping', ['-c', '1', '1.1.1.1']);
+      }
 
-      if (result.exitCode == 0) {
-        final output = result.stdout.toString();
-
-        // Extract time=XX ms
-        final regex = RegExp(r'time=([\d.]+)\s*ms');
-        final match = regex.firstMatch(output);
-
-        if (match != null) {
-          ping.value = double.parse(match.group(1)!).round();
-        }
+      if (result.exitCode != 0) {
+        return;
+      }
+      final output = result.stdout.toString();
+      if (output.contains(RegExp(r'time[=<]1ms', caseSensitive: false))) {
+        ping.value = 1;
+        return;
+      }
+      final match =
+          RegExp(r'time[=<](\d+)\s*ms', caseSensitive: false).firstMatch(output) ??
+              RegExp(r'time=([\d.]+)\s*ms').firstMatch(output);
+      if (match != null) {
+        ping.value = double.parse(match.group(1)!).round();
       }
     } catch (e) {
       debugPrint("Ping error: $e");
